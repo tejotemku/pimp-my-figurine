@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Pimp my figurine</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=check,close,edit" />
+    <style>
+     
+    </style>
+  </head>
+  <body>
+      <div id="board">
+          <canvas id="mini-painter-board-background" />
+          <canvas id="mini-canvas" class="color-layer-canvas" width="960" height="1280" />
+      </div>
+      <div id="sidebar">
+        <label for="mini-image-upload" class="button">
+          Upload image
+        </label>
+        <input type="file" id="mini-image-upload" name="Image import." accept="image/*" />
+        <label for="brush-size-slider" id="brush-size-slider-label">
+          Brush size: 5
+        </label>
+        <input type="range" min="1" max="40" value="5" id="brush-size-slider">
+        <label for="color-opacity-slider" id="color-opacity-slider-label">
+          Color opacity : 50%
+        </label>
+        <input type="range" min="1" max="100" value="50" id="color-opacity-slider">
+        <span>
+          <input type="checkbox" id="overwrite-pixels" name="overwrite-pixels" style="width: fit-content;" value="overwrite-pixels" /> 
+          <label for="overwrite-pixels"> Overwrite pixels  </label>
+        </span>
+        <button id="layer-color-eraser" type="button" style="width: fit-content;">Eraser</button>
+        <button id="add-new-layer" type="button" style="width: fit-content;">New color</button>
+
+        <div id="color-layers">
+          <!-- here layers go -->
+        </div>
+        <a href="https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart" target="_about"> 
+          DakkaDakka paints chart
+        </a>
+      </div>
+    <script src="./index.js"></script>
+  </body>
+</html>

@@ -1,0 +1,360 @@
+// CONSTANTS
+const DEFAULT_COLOR = '#29397B' // Ultramarine Blue ), cry me a river
+
+
+// types
+class ColorLayer {
+  constructor(layerId, color, name, canvas) {
+    this.layerId = layerId
+    this.color = color
+    this.name= name
+    this.canvas = canvas
+  }
+}
+
+// global variables
+let imageWidth = 0
+let imageHeight = 0
+let isImageSet = false
+let currentlyEditedLayer = ''
+let brushSize = 5
+let layers = []
+let lastLayerId = -1
+let overwritePixels = false
+let isErasing = false
+let colorsOpacityInPercents = 50
+
+function debounce(callback, delay) {
+  let timerId;
+
+  // Return a new function that wraps the callback
+  return function (...args) {
+    // 1. Clear any active timer currently running
+    clearTimeout(timerId);
+
+    // 2. Set a new timer
+    timerId = setTimeout(() => {
+      // 3. Execute the callback with the correct 'this' context and arguments
+      callback.apply(this, args);
+    }, delay);
+  };
+}
+
+function resetLayerControls() {
+  const colorLayers = document.getElementById('color-layers')
+  if (!colorLayers) return
+  colorLayers.innerHTML = ''
+}
+
+function setActiveColor (layerId) {
+  currentlyEditedLayer  = layerId
+  isErasing = false
+  document.getElementById('layer-color-eraser').classList.remove('active-layer')
+
+  const colorInputs = Array.from(document.getElementsByClassName('layer-color-input'))
+
+  colorInputs.forEach(layerInput => {
+    layerInput.classList.remove('active-layer')
+  })
+  document.getElementById(`layer-color-${layerId}`).classList.add('active-layer')
+}
+
+function setLayerControls() {
+  function createLayerElement(layer) {
+    function createIcon(iconName, callback) {
+      const icon = document.createElement('span')
+      icon.classList.add('material-symbols-outlined')
+      icon.innerHTML = iconName
+      icon.setAttribute('id', `layer-${iconName}-${layer.layerId}`)
+      icon.addEventListener("click", e => callback(e))
+      return icon
+    }
+
+    // wrapper
+    const layerWrapper = document.createElement('div')
+    layerWrapper.setAttribute('id', `layer-wrapper-${layer.layerId}`)
+    layerWrapper.classList.add('layer')
+
+
+      // color input
+      const colorInput = document.createElement('input')
+      colorInput.setAttribute('id', `layer-color-${layer.layerId}`)
+      colorInput.setAttribute('name', `layer-color-${layer.layerId}`)
+      colorInput.setAttribute('value', layer.color)
+      colorInput.setAttribute('type', 'color')
+      colorInput.classList.add("layer-color-input")
+      colorInput.addEventListener('input', (event) => changeLayerColor(layer.layerId, event.target.value))
+
+      // layer display name wrapper
+      const layerDisplayNameWrapper = document.createElement('div')
+      layerDisplayNameWrapper.classList.add('layer-display-name')
+        // layer name
+        const layerDisplayName = document.createElement('label')
+        layerDisplayName.setAttribute('id', `layer-name-${layer.layerId}`)
+        layerDisplayName.setAttribute('for', `layer-color-${layer.layerId}`)
+        layerDisplayName.innerHTML = layer.name
+        layerDisplayName.addEventListener('click', () => setActiveColor(layer.layerId))
+
+        // layer start edit icon
+        const layerStartEditIcon = createIcon('edit', () => {
+          layerWrapper.getElementsByClassName('layer-display-name')[0].style = "display: none;"
+          layerWrapper.getElementsByClassName('layer-edit-name')[0].style = "display: flex;"
+        })
+      layerDisplayNameWrapper.appendChild(layerDisplayName)
+      layerDisplayNameWrapper.appendChild(layerStartEditIcon)
+
+      // layer display name wrapper
+      const layerEditNameWrapper = document.createElement('div')
+      layerEditNameWrapper.classList.add('layer-edit-name')
+      layerEditNameWrapper.style = "display: none;"
+        // layer name
+        const layerEditNameInput = document.createElement('input')
+        layerEditNameInput.setAttribute('id', `layer-name-input-${layer.layerId}`)
+        layerEditNameInput.setAttribute('type', 'text')
+        layerEditNameInput.setAttribute('value', layer.name)
+
+        // layer start edit icon
+        const layerStopEditIcon = createIcon('check', () => {
+          layerWrapper.getElementsByClassName('layer-edit-name')[0].style = "display: none;"
+          layerWrapper.getElementsByClassName('layer-display-name')[0].style = "display: flex;"
+          changeLayerName(layer.layerId, layerEditNameInput.value)
+          resetLayerControls()
+          setLayerControls()
+        })
+        layerEditNameWrapper.appendChild(layerEditNameInput)
+        layerEditNameWrapper.appendChild(layerStopEditIcon)
+
+      // remove layer icon
+      const layerRemoveIcon = createIcon('close', () => removeLayerById(layer.layerId))
+
+    // append elements
+    layerWrapper.appendChild(colorInput)
+    layerWrapper.appendChild(layerDisplayNameWrapper)
+    layerWrapper.appendChild(layerEditNameWrapper)
+    layerWrapper.appendChild(layerRemoveIcon)
+
+    return layerWrapper
+  }
+
+  const colorLayers = document.getElementById('color-layers')
+  if (!colorLayers) return
+
+  layers.forEach(layer => colorLayers.appendChild(createLayerElement(layer)))
+
+
+}
+
+function changeLayerColor(layerId, color) {
+  const layer = layers.find(layer => layer.layerId === layerId)
+  if (!layer) return
+  changCanvasColor(layer.color, color)
+  layer.color = color
+}
+
+function changeLayerName(layerId, name) {
+  const layer = layers.find(layer => layer.layerId === layerId)
+  if (!layer) return
+  layer.name = name
+}
+
+function removeLayerById(layerId) {
+  if (!confirm('Are you sure you want to remove this color? This action cannot be undone, you will loose all you progress')) return
+  layers = layers.filter(layer => layer.layerId !== layerId)
+  resetLayerControls()
+  setLayerControls()
+  document.getElementById(layerId).remove()
+}
+
+
+function setBrushSize(size) {
+  brushSize = size
+}
+
+function setColorOpacity(opacity) {
+  // TOOD: convert 1-100 value to 1-256 and then hex; recolour every
+  // foreach colorlayer changCanvasColor(oldColor, oldColor)
+}
+
+function getBoard() {
+  return document.getElementById('board')
+}
+
+function createNewLayer() {
+  lastLayerId++
+  layers.push( new ColorLayer(`layer-${lastLayerId}`, DEFAULT_COLOR, `Color ${lastLayerId}`, null))
+  resetLayerControls()
+  setLayerControls()
+  setActiveColor(`layer-${lastLayerId}`)
+}
+
+document.getElementById('overwrite-pixels').addEventListener('change', () => overwritePixels = !overwritePixels)
+
+document.getElementById('layer-color-eraser').addEventListener('click', () => {
+  setActiveColor('eraser')
+  isErasing = true
+})
+document.getElementById('brush-size-slider').addEventListener('change', e => setBrushSize(e.target.value))
+document.getElementById('color-opacity-slider').addEventListener('change', (e) => setColorOpacity(e.target.value))
+
+document.getElementById('add-new-layer').addEventListener('click', createNewLayer)
+
+document.addEventListener("DOMContentLoaded", () => {
+  const miniImageImportFile = document.getElementById("mini-image-upload")
+  const miniPainterBoardBackground = document.getElementById("mini-painter-board-background")
+  if (!miniImageImportFile || !miniPainterBoardBackground) return
+
+  const canvasContext = miniPainterBoardBackground.getContext("2d", { willreadfrequently: true })
+  if (!canvasContext) return
+
+
+  miniImageImportFile.addEventListener("change", (event) => {
+    if (!event.target) return
+    const file = event.target.files[0]
+    if (!file) return
+
+    if (isImageSet && !confirm('Are you sure you want to open a new image? Current works will be lost.')) return
+
+    const reader = new FileReader()
+
+    reader.onload = (event) => {
+      const img = new Image()
+      
+      img.onload = () => {
+        imageWidth = img.width
+        imageHeight = img.height
+        miniPainterBoardBackground.width = imageWidth
+        miniPainterBoardBackground.height = imageHeight
+        canvasContext.drawImage(img, 0, 0)
+        currentlyEditedLayer = ''
+        resetLayerControls()
+        setLayerControls()
+        setupCanvas()
+      }
+
+      img.src = String(event.target?.result)
+      isImageSet = true
+    }
+
+    reader.readAsDataURL(file)
+
+  })
+})
+
+function changCanvasColor(oldColor, newColor) { 
+
+  // add debouncing
+
+  function getColorPrimitives (color) {
+    const tempCanvas = document.createElement('canvas')
+    tempCanvas.width = 1
+    tempCanvas.height = 1
+    const tempCtx = tempCanvas.getContext('2d', { willreadfrequently: true })
+    tempCtx.fillStyle = color  + '80'
+    tempCtx.fillRect(0, 0, 1, 1)
+    return tempCtx.getImageData(0, 0, 1, 1).data 
+  }
+
+  const canvas = document.getElementById('mini-canvas')
+  if (!canvas) return
+  const canvasContext = canvas.getContext('2d', { willreadfrequently: true })
+
+  const targetColor = getColorPrimitives(oldColor)
+  const replacementColor = getColorPrimitives(newColor)
+  const imageData = canvasContext.getImageData(0, 0, imageWidth, imageHeight)
+  const data = imageData.data 
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+    const a = data[i + 3]
+
+    if (
+      r === targetColor[0] &&
+      g === targetColor[1] &&
+      b === targetColor[2] &&
+      a === targetColor[3]
+    ) {
+      data[i]     = replacementColor[0]
+      data[i + 1] = replacementColor[1]
+      data[i + 2] = replacementColor[2]
+      data[i + 3] = replacementColor[3]
+    }
+  }
+
+  canvasContext?.putImageData(imageData, 0, 0)
+}
+
+function getBrushedArea() {
+  const coordinates = [];
+  if (brushSize < 0) return coordinates;
+  const rSquared = brushSize * brushSize;
+
+  for (let x = -brushSize; x <= brushSize; x++) {
+    for (let y = -brushSize; y <= brushSize; y++) {
+      if (x * x + y * y <= rSquared) {
+        coordinates.push({ x, y });
+      }
+    }
+  }
+  return coordinates;
+}
+
+function getColorByLayerId(layerId) {
+  return layers.find(layer => layer.layerId === layerId)?.color ?? DEFAULT_COLOR
+}
+
+function setupCanvas() {
+  const canvas = document.getElementById('mini-canvas')
+  canvas.width = imageWidth
+  canvas.height = imageHeight
+
+  const canvasContext = canvas.getContext('2d', { willreadfrequently: true })
+  
+  
+  let isPainting = false
+
+  const paintPixel = (event) => {
+    const rect = canvas.getBoundingClientRect()
+    const baseX = Math.floor(event.clientX - rect.left)
+    const baseY = Math.floor(event.clientY - rect.top)
+
+    const color = getColorByLayerId(currentlyEditedLayer) + '80'
+    canvasContext.fillStyle = color
+
+    
+    getBrushedArea().forEach(coord => {
+      const x = coord.x + baseX
+      const y = coord.y + baseY
+
+      if (canvasContext && x >= 0 && x < imageWidth && y >= 0 && y < imageHeight) {
+        if (isErasing || overwritePixels || canvasContext.getImageData(x, y, 1, 1).data.every(a => a === 0)) {
+          canvasContext.fillStyle = color
+          canvasContext.clearRect(x, y, 1, 1)
+          if (!isErasing) canvasContext.fillRect(x, y, 1, 1)
+        }
+      }
+    })
+    
+  }
+
+
+  canvas.addEventListener('mousedown', (event) => {
+    if (!currentlyEditedLayer) return
+    isPainting = true
+    paintPixel(event)
+  })
+
+  canvas.addEventListener('mousemove', (event) => {
+    if (isPainting) {
+      paintPixel(event)
+    }
+  })
+
+  window.addEventListener('mouseup', () => {
+    isPainting = false
+  })
+
+  getBoard()?.appendChild(canvas)
+  return canvas
+}

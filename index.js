@@ -22,9 +22,10 @@ let layers = []
 let lastLayerId = -1
 let overwritePixels = false
 let isErasing = false
-let colorsOpacityInPercents = 50
+let colorsOpacityInHex = '80'
+let colorsOpacityInHexOld = ''
 
-function debounce(callback, delay) {
+function debouncer(callback, delay) {
   let timerId;
 
   // Return a new function that wraps the callback
@@ -144,10 +145,10 @@ function setLayerControls() {
 
 }
 
-function changeLayerColor(layerId, color) {
+function changeLayerColorFunc(layerId, color) {
   const layer = layers.find(layer => layer.layerId === layerId)
   if (!layer) return
-  changCanvasColor(layer.color, color)
+  changeCanvasColor(layer.color, color)
   layer.color = color
 }
 
@@ -162,18 +163,30 @@ function removeLayerById(layerId) {
   layers = layers.filter(layer => layer.layerId !== layerId)
   resetLayerControls()
   setLayerControls()
-  document.getElementById(layerId).remove()
 }
 
 
 function setBrushSize(size) {
   brushSize = size
+  document.getElementById('brush-size-slider-label').innerText = `Brush size: ${size}`
 }
 
-function setColorOpacity(opacity) {
-  // TOOD: convert 1-100 value to 1-256 and then hex; recolour every
-  // foreach colorlayer changCanvasColor(oldColor, oldColor)
+function repaintCanvas() {
+  layers.forEach(layer => changeCanvasColor(layer.color, layer.color))
 }
+
+
+function setColorOpacityFunc(opacity) {
+  let opacity256 = Number(opacity) * 255 / 100
+  opacity256 = opacity256 | 0
+  colorsOpacityInHexOld = colorsOpacityInHex
+  colorsOpacityInHex = opacity256.toString(16).toUpperCase();
+  if (colorsOpacityInHex.length === 1) colorsOpacityInHex = '0' + colorsOpacityInHex
+  console.log('setColorOpacityFunc', colorsOpacityInHexOld, colorsOpacityInHex)
+  repaintCanvas()
+}
+
+const setColorOpacity = debouncer(setColorOpacityFunc, 250)
 
 function getBoard() {
   return document.getElementById('board')
@@ -193,8 +206,11 @@ document.getElementById('layer-color-eraser').addEventListener('click', () => {
   setActiveColor('eraser')
   isErasing = true
 })
-document.getElementById('brush-size-slider').addEventListener('change', e => setBrushSize(e.target.value))
-document.getElementById('color-opacity-slider').addEventListener('change', (e) => setColorOpacity(e.target.value))
+document.getElementById('brush-size-slider').addEventListener('input', e => setBrushSize(e.target.value))
+document.getElementById('color-opacity-slider').addEventListener('input', (e) => {
+  document.getElementById('color-opacity-slider-label').innerText = `Color opacity : ${e.target.value}%`
+  setColorOpacity(e.target.value)
+})
 
 document.getElementById('add-new-layer').addEventListener('click', createNewLayer)
 
@@ -240,16 +256,16 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 })
 
-function changCanvasColor(oldColor, newColor) { 
+function changeCanvasColor(oldColor, newColor) { 
 
   // add debouncing
 
-  function getColorPrimitives (color) {
+  function getColorPrimitives (color, opacity) {
     const tempCanvas = document.createElement('canvas')
     tempCanvas.width = 1
     tempCanvas.height = 1
     const tempCtx = tempCanvas.getContext('2d', { willreadfrequently: true })
-    tempCtx.fillStyle = color  + '80'
+    tempCtx.fillStyle = color  + opacity
     tempCtx.fillRect(0, 0, 1, 1)
     return tempCtx.getImageData(0, 0, 1, 1).data 
   }
@@ -258,8 +274,8 @@ function changCanvasColor(oldColor, newColor) {
   if (!canvas) return
   const canvasContext = canvas.getContext('2d', { willreadfrequently: true })
 
-  const targetColor = getColorPrimitives(oldColor)
-  const replacementColor = getColorPrimitives(newColor)
+  const targetColor = getColorPrimitives(oldColor, colorsOpacityInHexOld)
+  const replacementColor = getColorPrimitives(newColor, colorsOpacityInHex)
   const imageData = canvasContext.getImageData(0, 0, imageWidth, imageHeight)
   const data = imageData.data 
 
@@ -284,6 +300,8 @@ function changCanvasColor(oldColor, newColor) {
 
   canvasContext?.putImageData(imageData, 0, 0)
 }
+
+const changeLayerColor = debouncer(changeLayerColorFunc, 250)
 
 function getBrushedArea() {
   const coordinates = [];
@@ -319,7 +337,7 @@ function setupCanvas() {
     const baseX = Math.floor(event.clientX - rect.left)
     const baseY = Math.floor(event.clientY - rect.top)
 
-    const color = getColorByLayerId(currentlyEditedLayer) + '80'
+    const color = getColorByLayerId(currentlyEditedLayer) + colorsOpacityInHex
     canvasContext.fillStyle = color
 
     

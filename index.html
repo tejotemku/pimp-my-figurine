@@ -6,42 +6,98 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Pimp my figurine</title>
     <link rel="stylesheet" href="./style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=check,close,edit" />
-    <style>
-     
-    </style>
+    <link rel="icon" type="image/x-icon" href="./public/PimpMyFigurineLogoMini.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,add_photo_alternate,check,close,edit,ink_eraser,palette,text_ad,text_ad_off" />
   </head>
   <body>
       <div id="board">
-          <canvas id="mini-painter-board-background" />
-          <canvas id="mini-canvas" class="color-layer-canvas" width="960" height="1280" />
-      </div>
-      <div id="sidebar">
-        <label for="mini-image-upload" class="button">
-          Upload image
-        </label>
-        <input type="file" id="mini-image-upload" name="Image import." accept="image/*" />
-        <label for="brush-size-slider" id="brush-size-slider-label">
-          Brush size: 5
-        </label>
-        <input type="range" min="1" max="40" value="5" id="brush-size-slider">
-        <label for="color-opacity-slider" id="color-opacity-slider-label">
-          Color opacity : 50%
-        </label>
-        <input type="range" min="1" max="100" value="50" id="color-opacity-slider">
-        <span>
-          <input type="checkbox" id="overwrite-pixels" name="overwrite-pixels" style="width: fit-content;" value="overwrite-pixels" /> 
-          <label for="overwrite-pixels"> Overwrite pixels  </label>
-        </span>
-        <button id="layer-color-eraser" type="button" style="width: fit-content;">Eraser</button>
-        <button id="add-new-layer" type="button" style="width: fit-content;">New color</button>
+        <!-- canvases -->
+        <canvas id="mini-canvas" style="z-index: 3;"></canvas>
+        <canvas id="mini-painter-board-background"></canvas>
+        <canvas id="mini-painter-board-background-greyscale" style="z-index: 2"></canvas>
+        <div id="no-image-loaded"> No image loaded. Use "Upload image" button on top left</div>
 
-        <div id="color-layers">
-          <!-- here layers go -->
+        <!-- UI elements -->
+        <div id="brush"></div>
+        <span id="hide-ui-button" class="material-symbols-outlined hide-ui disabled">text_ad_off</span>
+
+          <!-- upload image -->
+        <input type="file" id="mini-image-upload" name="Image import." accept="image/*" />
+        <label for="mini-image-upload" class="button upload-image-button ui-controls">
+          <span class="material-symbols-outlined">add_photo_alternate</span>
+           Upload image
+         </label>
+        <!-- logo -->
+         <img src="./public/PimpMyFigurineLogo.png" class="logo ui-controls"></img>
+      </div>
+      <div id="sidebar" class="ui-controls">
+        <div style="width: 100%; margin-bottom: 12px;">
+          <span class="tabs">
+            <span id="color-controls-tab-activator">Painting</span>
+            
+            <span class="tab-separator"></span>
+
+            <span id="landscape-tab-activator">Landscape</span>
+          </span>
+          <hr class="accent" />
         </div>
-        <a href="https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart" target="_about"> 
-          DakkaDakka paints chart
-        </a>
+        <div class="sidebar-tab" id="color-controls-tab">
+          <!-- greyscale -->
+          <input type="checkbox" id="greyscale" value="greyscale" />   
+          <label for="greyscale" class="toggle-switch">
+              <span class="toggle-switch-controler"></span>
+              <span class="label-text">Greyscale photo</span>
+          </label>
+
+          <!-- overrite pixels -->
+          <input type="checkbox" id="paint-over" value="paint-over" /> 
+          <label for="paint-over" class="toggle-switch">
+              <span class="toggle-switch-controler"></span>
+              <span class="label-text">Paint over</span>
+          </label>
+
+          <!-- brush size -->
+          <span class="slider-wrapper">
+            <input type="range" min="1" max="20" value="10" id="brush-size-slider">
+            <label for="brush-size-slider" id="brush-size-slider-label">
+              Brush size: 10
+            </label>
+          </span>
+
+          <!-- opacity -->
+          <span class="slider-wrapper">
+            <input type="range" min="1" max="100" value="50" id="color-opacity-slider">
+            <label for="color-opacity-slider" id="color-opacity-slider-label">
+              Color opacity : 50%
+            </label>
+          </span>
+          
+          <!-- colors & eraser -->
+          <span class="color-controls">
+            <label id="layer-color-eraser" class="button disabled">
+              <span class="material-symbols-outlined">ink_eraser</span>
+              Eraser
+            </label>
+    
+            <label id="add-new-layer" class="button disabled">
+              New paint
+              <span class="material-symbols-outlined">add</span>
+            </label>
+          </span>
+          <div id="color-layers">
+            <!-- here layers go -->
+          </div>
+
+          <hr />
+          <!-- links -->
+          <a href="https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart" target="_about">  
+            <span class="material-symbols-outlined">palette</span> 
+            DakkaDakka paints chart
+          </a>
+        </div>
+        <div class="sidebar-tab" id="landscape-tab">
+          Nothing yet...
+        </div>
       </div>
     <script src="./index.js"></script>
   </body>

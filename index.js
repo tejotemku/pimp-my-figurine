@@ -24,22 +24,35 @@ let overwritePixels = false
 let isErasing = false
 let colorsOpacityInHex = '80'
 let colorsOpacityInHexOld = ''
+let hideUI = false
+let greyscale = false
+
 
 // global elements
+//    controls
 const brush = document.getElementById('brush')
+const hideUiButton = document.getElementById('hide-ui-button')
+const greyscaleCheckbox = document.getElementById('greyscale')
+
+//    canvases
+const canvas = document.getElementById('mini-painter-board-background')
+const canvasContext = canvas.getContext('2d')
+
+const canvasGreyscale = document.getElementById('mini-painter-board-background-greyscale')
+const canvasContextGreyscale = canvasGreyscale.getContext('2d')
+canvasGreyscale.style.visibility = 'hidden'
+
+const paintingCanvas = document.getElementById('mini-canvas')
+const paintingCanvasContext = paintingCanvas.getContext('2d', { willreadfrequently: true })
 
 // helpers
 function debouncer(callback, delay) {
   let timerId
 
-  // Return a new function that wraps the callback
   return function (...args) {
-    // 1. Clear any active timer currently running
     clearTimeout(timerId)
 
-    // 2. Set a new timer
     timerId = setTimeout(() => {
-      // 3. Execute the callback with the correct 'this' context and arguments
       callback.apply(this, args)
     }, delay)
   }
@@ -64,6 +77,7 @@ function clearBrushColor() {
   brush.style.backgroundColor = '#00000080'
 }
 
+// layers
 function resetLayerControls() {
   const colorLayers = document.getElementById('color-layers')
   if (!colorLayers) return
@@ -230,6 +244,160 @@ function createNewLayer() {
   setActiveColor(`layer-${lastLayerId}`)
 }
 
+function changeCanvasColor(oldColor, newColor, opacityChange) {
+  function getColorPrimitives (color, opacity) {
+    const tempCanvas = document.createElement('canvas')
+    tempCanvas.width = 1
+    tempCanvas.height = 1
+    const tempCtx = tempCanvas.getContext('2d', { willreadfrequently: true })
+    tempCtx.fillStyle = color  + opacity
+    tempCtx.fillRect(0, 0, 1, 1)
+    return tempCtx.getImageData(0, 0, 1, 1).data 
+  }
+
+  const targetColor = getColorPrimitives(oldColor, opacityChange ? colorsOpacityInHexOld: colorsOpacityInHex)
+  const replacementColor = getColorPrimitives(newColor, colorsOpacityInHex)
+  const imageData = paintingCanvasContext.getImageData(0, 0, imageWidth, imageHeight)
+  const data = imageData.data 
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+    const a = data[i + 3]
+
+    if (
+      r === targetColor[0] &&
+      g === targetColor[1] &&
+      b === targetColor[2] &&
+      a === targetColor[3]
+    ) {
+      data[i]     = replacementColor[0]
+      data[i + 1] = replacementColor[1]
+      data[i + 2] = replacementColor[2]
+      data[i + 3] = replacementColor[3]
+    }
+  }
+
+  paintingCanvasContext?.putImageData(imageData, 0, 0)
+}
+
+const changeLayerColor = debouncer(changeLayerColorFunc, 250)
+
+function getBrushedArea() {
+  const coordinates = []
+  if (brushSize < 0) return coordinates
+  const rSquared = brushSize * brushSize
+
+
+  for (let x = -brushSize; x <= brushSize; x++) {
+    for (let y = -brushSize; y <= brushSize; y++) {
+      if (x * x + y * y <= rSquared) {
+        coordinates.push({ x, y })
+      }
+    }
+  }
+  return coordinates
+}
+
+function getColorByLayerId(layerId) {
+  return layers.find(layer => layer.layerId === layerId)?.color ?? DEFAULT_COLOR
+}
+
+function getCurrentColor() {
+  return getColorByLayerId(currentlyEditedLayer) + colorsOpacityInHex
+}
+
+function setupCanvas() {
+  paintingCanvas.width = imageWidth
+  paintingCanvas.height = imageHeight
+  let isPainting = false
+
+  const paintPixel = (event) => {
+    const rect = paintingCanvas.getBoundingClientRect()
+    const baseX = Math.floor(event.clientX - rect.left)
+    const baseY = Math.floor(event.clientY - rect.top)
+
+    const color = getCurrentColor()
+    paintingCanvasContext.fillStyle = color
+
+    
+    const area = getBrushedArea()
+    area.forEach(coord => {
+      const x = coord.x + baseX
+      const y = coord.y + baseY
+
+      if (paintingCanvasContext && x >= 0 && x < imageWidth && y >= 0 && y < imageHeight) {
+        if (isErasing || overwritePixels || paintingCanvasContext.getImageData(x, y, 1, 1).data.every(a => a === 0)) {
+          paintingCanvasContext.fillStyle = color
+          paintingCanvasContext.clearRect(x, y, 1, 1)
+          if (!isErasing) paintingCanvasContext.fillRect(x, y, 1, 1)
+        }
+      }
+    })
+    
+  }
+
+
+  paintingCanvas.addEventListener('mousedown', (event) => {
+    if (!currentlyEditedLayer) return
+    isPainting = true
+    paintPixel(event)
+  })
+
+  paintingCanvas.addEventListener('mousemove', (event) => {
+    if (isPainting) {
+      paintPixel(event)
+    }
+  })
+
+  window.addEventListener('mouseup', () => {
+    isPainting = false
+  })
+
+  getBoard()?.appendChild(paintingCanvas)
+  return paintingCanvas
+}
+
+function convertCanvasToGreyscale() {
+  canvasGreyscale.width = imageWidth
+  canvasGreyscale.height = imageHeight
+  const imageData = canvasContext.getImageData(0, 0, imageWidth, imageHeight)
+  const data = imageData.data; 
+
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+
+    const grey = (r * 0.299) + (g * 0.587) + (b * 0.114)
+
+    data[i]     = grey
+    data[i + 1] = grey
+    data[i + 2] = grey
+  }
+
+  canvasContextGreyscale.putImageData(imageData, 0, 0);
+}
+
+function toggleUIVisibility() {
+  hideUI = !hideUI
+  Array.from(document.getElementsByClassName('ui-controls')).forEach(elem => {
+    elem.classList.toggle('hide')
+  })
+  hideUiButton.innerText = hideUI ? 'Show UI' : 'Hide UI'
+}
+
+
+// watchers
+hideUiButton.addEventListener('click', toggleUIVisibility)
+
+greyscaleCheckbox.addEventListener('change', event => {
+  greyscale = !greyscale
+  canvasGreyscale.style.visibility = greyscale ? 'visible' : 'hidden'
+})
+
 document.getElementById('overwrite-pixels').addEventListener('change', () => overwritePixels = !overwritePixels)
 
 document.getElementById('layer-color-eraser').addEventListener('click', () => {
@@ -276,6 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resetLayerControls()
         setLayerControls()
         setupCanvas()
+        convertCanvasToGreyscale()
       }
 
       img.src = String(event.target?.result)
@@ -286,130 +455,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
   })
 })
-
-function changeCanvasColor(oldColor, newColor, opacityChange) {
-
-  // add debouncing
-
-  function getColorPrimitives (color, opacity) {
-    const tempCanvas = document.createElement('canvas')
-    tempCanvas.width = 1
-    tempCanvas.height = 1
-    const tempCtx = tempCanvas.getContext('2d', { willreadfrequently: true })
-    tempCtx.fillStyle = color  + opacity
-    tempCtx.fillRect(0, 0, 1, 1)
-    return tempCtx.getImageData(0, 0, 1, 1).data 
-  }
-
-  const canvas = document.getElementById('mini-canvas')
-  if (!canvas) return
-  const canvasContext = canvas.getContext('2d', { willreadfrequently: true })
-
-  const targetColor = getColorPrimitives(oldColor, opacityChange ? colorsOpacityInHexOld: colorsOpacityInHex)
-  const replacementColor = getColorPrimitives(newColor, colorsOpacityInHex)
-  const imageData = canvasContext.getImageData(0, 0, imageWidth, imageHeight)
-  const data = imageData.data 
-
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i]
-    const g = data[i + 1]
-    const b = data[i + 2]
-    const a = data[i + 3]
-
-    if (
-      r === targetColor[0] &&
-      g === targetColor[1] &&
-      b === targetColor[2] &&
-      a === targetColor[3]
-    ) {
-      data[i]     = replacementColor[0]
-      data[i + 1] = replacementColor[1]
-      data[i + 2] = replacementColor[2]
-      data[i + 3] = replacementColor[3]
-    }
-  }
-
-  canvasContext?.putImageData(imageData, 0, 0)
-}
-
-const changeLayerColor = debouncer(changeLayerColorFunc, 250)
-
-function getBrushedArea() {
-  const coordinates = []
-  if (brushSize < 0) return coordinates
-  const rSquared = brushSize * brushSize
-
-
-  for (let x = -brushSize; x <= brushSize; x++) {
-    for (let y = -brushSize; y <= brushSize; y++) {
-      if (x * x + y * y <= rSquared) {
-        coordinates.push({ x, y })
-      }
-    }
-  }
-  return coordinates
-}
-
-function getColorByLayerId(layerId) {
-  return layers.find(layer => layer.layerId === layerId)?.color ?? DEFAULT_COLOR
-}
-
-function getCurrentColor() {
-  return getColorByLayerId(currentlyEditedLayer) + colorsOpacityInHex
-}
-
-function setupCanvas() {
-  const canvas = document.getElementById('mini-canvas')
-  canvas.width = imageWidth
-  canvas.height = imageHeight
-
-  const canvasContext = canvas.getContext('2d', { willreadfrequently: true })
-  
-  
-  let isPainting = false
-
-  const paintPixel = (event) => {
-    const rect = canvas.getBoundingClientRect()
-    const baseX = Math.floor(event.clientX - rect.left)
-    const baseY = Math.floor(event.clientY - rect.top)
-
-    const color = getCurrentColor()
-    canvasContext.fillStyle = color
-
-    
-    const area = getBrushedArea()
-    area.forEach(coord => {
-      const x = coord.x + baseX
-      const y = coord.y + baseY
-
-      if (canvasContext && x >= 0 && x < imageWidth && y >= 0 && y < imageHeight) {
-        if (isErasing || overwritePixels || canvasContext.getImageData(x, y, 1, 1).data.every(a => a === 0)) {
-          canvasContext.fillStyle = color
-          canvasContext.clearRect(x, y, 1, 1)
-          if (!isErasing) canvasContext.fillRect(x, y, 1, 1)
-        }
-      }
-    })
-    
-  }
-
-
-  canvas.addEventListener('mousedown', (event) => {
-    if (!currentlyEditedLayer) return
-    isPainting = true
-    paintPixel(event)
-  })
-
-  canvas.addEventListener('mousemove', (event) => {
-    if (isPainting) {
-      paintPixel(event)
-    }
-  })
-
-  window.addEventListener('mouseup', () => {
-    isPainting = false
-  })
-
-  getBoard()?.appendChild(canvas)
-  return canvas
-}

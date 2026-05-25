@@ -13,13 +13,18 @@
   </head>
   <body>
       <div id="board">
-          <canvas id="mini-painter-board-background">
-            <canvas id="mini-canvas" class="color-layer-canvas" width="960" height="1280"></canvas>
-          </canvas>
+          <canvas id="mini-canvas" style="z-index: 3;"></canvas>
+          <canvas id="mini-painter-board-background"></canvas>
+          <canvas id="mini-painter-board-background-greyscale" style="z-index: 2"></canvas>
           <div id="brush"></div>
+          <div id="hide-ui-button" class="button">Hide UI</div>
       </div>
-      <div id="sidebar">
-        <label for="mini-image-upload" class="button">
+      <div id="sidebar" class="ui-controls">
+        <span>
+          <input type="checkbox" id="greyscale" name="greyscale" style="width: fit-content;" value="greyscale" />   
+          <label for="greyscale"> Greyscale  </label>
+        </span>
+       <label for="mini-image-upload" class="button">
           Upload image
         </label>
         <input type="file" id="mini-image-upload" name="Image import." accept="image/*" />

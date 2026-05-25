@@ -89,14 +89,22 @@ input[type="file"] {
   border: 4px solid gold;
 }
 
-#mini-painter-board-background {
-  margin: auto;
-}
+
 
 canvas:not(#mini-painter-board-background) {
-  z-index: 2;
   position: absolute;
-  margin: auto;
 }
 
 /* .layer-color-input {} */
+
+#hide-ui-button { 
+  position: absolute;
+  z-index: 8;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+}
+
+.hide {
+  visibility: hidden;
+}

@@ -172,7 +172,7 @@ function setBrushSize(size) {
 }
 
 function repaintCanvas() {
-  layers.forEach(layer => changeCanvasColor(layer.color, layer.color))
+  layers.forEach(layer => changeCanvasColor(layer.color, layer.color, true))
 }
 
 
@@ -182,7 +182,6 @@ function setColorOpacityFunc(opacity) {
   colorsOpacityInHexOld = colorsOpacityInHex
   colorsOpacityInHex = opacity256.toString(16).toUpperCase();
   if (colorsOpacityInHex.length === 1) colorsOpacityInHex = '0' + colorsOpacityInHex
-  console.log('setColorOpacityFunc', colorsOpacityInHexOld, colorsOpacityInHex)
   repaintCanvas()
 }
 
@@ -256,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 })
 
-function changeCanvasColor(oldColor, newColor) { 
+function changeCanvasColor(oldColor, newColor, opacityChange) {
 
   // add debouncing
 
@@ -274,7 +273,7 @@ function changeCanvasColor(oldColor, newColor) {
   if (!canvas) return
   const canvasContext = canvas.getContext('2d', { willreadfrequently: true })
 
-  const targetColor = getColorPrimitives(oldColor, colorsOpacityInHexOld)
+  const targetColor = getColorPrimitives(oldColor, opacityChange ? colorsOpacityInHexOld: colorsOpacityInHex)
   const replacementColor = getColorPrimitives(newColor, colorsOpacityInHex)
   const imageData = canvasContext.getImageData(0, 0, imageWidth, imageHeight)
   const data = imageData.data 

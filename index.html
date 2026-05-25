@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Pimp my figurine</title>
     <link rel="stylesheet" href="./style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add_photo_alternate,check,close,edit,palette,text_ad,text_ad_off" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,add_photo_alternate,check,close,edit,ink_eraser,palette,text_ad,text_ad_off" />
     <style>
      
     </style>
@@ -26,6 +26,8 @@
           <span class="material-symbols-outlined">add_photo_alternate</span>
            Upload image
          </label>
+         
+        <hr />
 
         <!-- greyscale -->
         <input type="checkbox" id="greyscale" value="greyscale" />   
@@ -57,16 +59,25 @@
           </label>
         </span>
         
-        <span class="flex-row">
-          <button id="layer-color-eraser" type="button" style="width: fit-content;">Eraser</button>
-          <button id="add-new-layer" type="button" style="width: fit-content;">New paint</button>
+        <!-- colors & eraser -->
+        <span class="color-controls">
+          <label id="layer-color-eraser" class="button">
+            <span class="material-symbols-outlined">ink_eraser</span>
+            Eraser
+          </label>
+  
+          <label id="add-new-layer" class="button">
+            New paint
+            <span class="material-symbols-outlined">add</span>
+          </label>
         </span>
-
         <div id="color-layers">
           <!-- here layers go -->
         </div>
-        <a href="https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart" target="_about">
-          
+
+        <hr />
+        <!-- links -->
+        <a href="https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart" target="_about">  
           <span class="material-symbols-outlined">palette</span> 
           DakkaDakka paints chart
         </a>

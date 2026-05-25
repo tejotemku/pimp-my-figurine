@@ -138,6 +138,7 @@ function renderLayerControls() {
       colorTile.style.backgroundColor = color
       colorTile.addEventListener("click", () => {
         colorInput.setAttribute('value', color)
+        changeLayerColor(layerId, color)
       })
       return colorTile
     }
@@ -208,7 +209,7 @@ function renderLayerControls() {
     // layer drawer for old colors
     const layerDrawer = document.createElement('div')
     layerDrawer.classList.add('layer-drawer')
-    layer.oldColors.slice(1, 20).forEach(color => layerDrawer.appendChild(createOldColorTile(color, colorInput)))
+    layer.oldColors.forEach(color => layerDrawer.appendChild(createOldColorTile(color, colorInput)))
 
     // append elements
     layerControls.appendChild(colorInput)
@@ -272,7 +273,7 @@ function getBoard() {
 
 function createNewLayer() {
   lastLayerId++
-  layers.push( new ColorLayer(`layer-${lastLayerId}`, getNewPresetColor(), `Color ${lastLayerId}`, null))
+  layers.push( new ColorLayer(`layer-${lastLayerId}`, getNewPresetColor(), `Paint ${lastLayerId}`, null))
   renderLayerControls()
   setActiveColor(`layer-${lastLayerId}`)
 }
@@ -497,6 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
         convertCanvasToGreyscale()
         clearBrushColor()
         Array.from(document.getElementsByClassName('disabled')).forEach(elem => elem.classList.remove('disabled'))
+        document.getElementById('no-image-loaded')?.remove()
       }
 
       img.src = String(event.target?.result)

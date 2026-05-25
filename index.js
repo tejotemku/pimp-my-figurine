@@ -25,6 +25,7 @@ class ColorLayer {
     this.color = color
     this.name= name
     this.canvas = canvas
+    this.oldColors = [color]
   }
 }
 
@@ -93,13 +94,6 @@ function clearBrushColor() {
   brush.style.backgroundColor = '#00000080'
 }
 
-// layers
-function resetLayerControls() {
-  const colorLayers = document.getElementById('color-layers')
-  if (!colorLayers) return
-  colorLayers.innerHTML = ''
-}
-
 function setActiveColor (layerId) {
   currentlyEditedLayer  = layerId
   isErasing = false
@@ -114,46 +108,72 @@ function setActiveColor (layerId) {
   setBrushColor()
 }
 
-function setLayerControls() {
+function getNewPresetColor() {
+  return PRESET_COLORS[lastLayerId% PRESET_COLORS.length];
+}
+
+// layers
+function resetLayerControls() {
+  const colorLayers = document.getElementById('color-layers')
+  if (!colorLayers) return
+  colorLayers.innerHTML = ''
+}
+
+function renderLayerControls() {
   function createLayerElement(layer) {
+    const layerId = layer.layerId
+
     function createIcon(iconName, callback) {
       const icon = document.createElement('span')
       icon.classList.add('material-symbols-outlined')
       icon.innerHTML = iconName
-      icon.setAttribute('id', `layer-${iconName}-${layer.layerId}`)
+      icon.setAttribute('id', `layer-${iconName}-${layerId}`)
       icon.addEventListener("click", e => callback(e))
       return icon
     }
 
+    function createOldColorTile(color, colorInput) {
+      const colorTile = document.createElement('div')
+      colorTile.classList.add('old-color')
+      colorTile.style.backgroundColor = color
+      colorTile.addEventListener("click", () => {
+        colorInput.setAttribute('value', color)
+      })
+      return colorTile
+    }
+
     // wrapper
     const layerWrapper = document.createElement('div')
-    layerWrapper.setAttribute('id', `layer-wrapper-${layer.layerId}`)
-    layerWrapper.classList.add('layer')
+    
+    // layer
+    const layerControls = document.createElement('div')
+    layerControls.classList.add('layer')
 
 
       // color input
       const colorInput = document.createElement('input')
-      colorInput.setAttribute('id', `layer-color-${layer.layerId}`)
-      colorInput.setAttribute('name', `layer-color-${layer.layerId}`)
+      colorInput.setAttribute('id', `layer-color-${layerId}`)
+      colorInput.setAttribute('name', `layer-color-${layerId}`)
       colorInput.setAttribute('value', layer.color)
       colorInput.setAttribute('type', 'color')
       colorInput.classList.add("layer-color-input")
-      colorInput.addEventListener('input', (event) => changeLayerColor(layer.layerId, event.target.value))
+      colorInput.addEventListener('input', (event) => changeLayerColor(layerId, event.target.value))
+      colorInput.addEventListener('change', () => saveUsedColor(layerId))
 
       // layer display name wrapper
       const layerDisplayNameWrapper = document.createElement('div')
       layerDisplayNameWrapper.classList.add('layer-display-name')
         // layer name
         const layerDisplayName = document.createElement('label')
-        layerDisplayName.setAttribute('id', `layer-name-${layer.layerId}`)
-        layerDisplayName.setAttribute('for', `layer-color-${layer.layerId}`)
+        layerDisplayName.setAttribute('id', `layer-name-${layerId}`)
+        layerDisplayName.setAttribute('for', `layer-color-${layerId}`)
         layerDisplayName.innerHTML = layer.name
-        layerDisplayName.addEventListener('click', () => setActiveColor(layer.layerId))
+        layerDisplayName.addEventListener('click', () => setActiveColor(layerId))
 
         // layer start edit icon
         const layerStartEditIcon = createIcon('edit', () => {
-          layerWrapper.getElementsByClassName('layer-display-name')[0].style = "display: none;"
-          layerWrapper.getElementsByClassName('layer-edit-name')[0].style = "display: flex;"
+          layerControls.getElementsByClassName('layer-display-name')[0].style = "display: none;"
+          layerControls.getElementsByClassName('layer-edit-name')[0].style = "display: flex;"
         })
       layerDisplayNameWrapper.appendChild(layerDisplayName)
       layerDisplayNameWrapper.appendChild(layerStartEditIcon)
@@ -166,14 +186,13 @@ function setLayerControls() {
         const layerEditNameInput = document.createElement('input')
 
         function saveLayerName() {
-          layerWrapper.getElementsByClassName('layer-edit-name')[0].style = "display: none;"
-          layerWrapper.getElementsByClassName('layer-display-name')[0].style = "display: flex;"
-          changeLayerName(layer.layerId, layerEditNameInput.value)
-          resetLayerControls()
-          setLayerControls()
+          layerControls.getElementsByClassName('layer-edit-name')[0].style = "display: none;"
+          layerControls.getElementsByClassName('layer-display-name')[0].style = "display: flex;"
+          changeLayerName(layerId, layerEditNameInput.value)
+          renderLayerControls()
         }
 
-        layerEditNameInput.setAttribute('id', `layer-name-input-${layer.layerId}`)
+        layerEditNameInput.setAttribute('id', `layer-name-input-${layerId}`)
         layerEditNameInput.setAttribute('type', 'text')
         layerEditNameInput.setAttribute('value', layer.name)
         layerEditNameInput.addEventListener('keypress',  (event) => (event.key === 'Enter') && saveLayerName())
@@ -184,32 +203,32 @@ function setLayerControls() {
         layerEditNameWrapper.appendChild(layerStopEditIcon)
 
       // remove layer icon
-      const layerRemoveIcon = createIcon('close', () => removeLayerById(layer.layerId))
+      const layerRemoveIcon = createIcon('close', () => removeLayerById(layerId))
+    
+    // layer drawer for old colors
+    const layerDrawer = document.createElement('div')
+    layerDrawer.classList.add('layer-drawer')
+    layer.oldColors.slice(1, 20).forEach(color => layerDrawer.appendChild(createOldColorTile(color, colorInput)))
 
     // append elements
-    layerWrapper.appendChild(colorInput)
-    layerWrapper.appendChild(layerDisplayNameWrapper)
-    layerWrapper.appendChild(layerEditNameWrapper)
-    layerWrapper.appendChild(layerRemoveIcon)
+    layerControls.appendChild(colorInput)
+    layerControls.appendChild(layerDisplayNameWrapper)
+    layerControls.appendChild(layerEditNameWrapper)
+    layerControls.appendChild(layerRemoveIcon)
+    layerWrapper.appendChild(layerControls)
+    layerWrapper.appendChild(layerDrawer)
 
     return layerWrapper
   }
 
+  resetLayerControls()
   const colorLayers = document.getElementById('color-layers')
   if (!colorLayers) return
 
   layers.forEach(layer => colorLayers.appendChild(createLayerElement(layer)))
-
-
 }
 
-function changeLayerColorFunc(layerId, color) {
-  const layer = layers.find(layer => layer.layerId === layerId)
-  if (!layer) return
-  changeCanvasColor(layer.color, color)
-  layer.color = color
-  setBrushColor()
-}
+
 
 function changeLayerName(layerId, name) {
   const layer = layers.find(layer => layer.layerId === layerId)
@@ -220,8 +239,7 @@ function changeLayerName(layerId, name) {
 function removeLayerById(layerId) {
   if (!confirm('Are you sure you want to remove this color? This action cannot be undone, you will loose all you progress')) return
   layers = layers.filter(layer => layer.layerId !== layerId)
-  resetLayerControls()
-  setLayerControls()
+  renderLayerControls()
 }
 
 
@@ -252,15 +270,10 @@ function getBoard() {
   return document.getElementById('board')
 }
 
-function getNewPresetColor() {
-  return PRESET_COLORS[lastLayerId% PRESET_COLORS.length];
-}
-
 function createNewLayer() {
   lastLayerId++
   layers.push( new ColorLayer(`layer-${lastLayerId}`, getNewPresetColor(), `Color ${lastLayerId}`, null))
-  resetLayerControls()
-  setLayerControls()
+  renderLayerControls()
   setActiveColor(`layer-${lastLayerId}`)
 }
 
@@ -300,6 +313,23 @@ function changeCanvasColor(oldColor, newColor, opacityChange) {
   }
 
   paintingCanvasContext?.putImageData(imageData, 0, 0)
+}
+
+function saveUsedColor(layerId) {
+  const layer = layers.find(layer => layer.layerId === layerId)
+  if (!layer) return
+  const oldColors = [...layer.oldColors]
+  oldColors.unshift(layer.color)
+  layer.oldColors = oldColors.slice(0, 12)
+  renderLayerControls()
+}
+
+function changeLayerColorFunc(layerId, color) {
+  const layer = layers.find(layer => layer.layerId === layerId)
+  if (!layer) return
+  changeCanvasColor(layer.color, color)
+  layer.color = color
+  setBrushColor()
 }
 
 const changeLayerColor = debouncer(changeLayerColorFunc, 250)
@@ -413,7 +443,7 @@ function toggleUIVisibility() {
 // watchers
 hideUiButton.addEventListener('click', toggleUIVisibility)
 
-greyscaleCheckbox.addEventListener('change', event => {
+greyscaleCheckbox.addEventListener('change', () => {
   greyscale = !greyscale
   canvasGreyscale.style.visibility = greyscale ? 'visible' : 'hidden'
 })
@@ -461,10 +491,12 @@ document.addEventListener("DOMContentLoaded", () => {
         miniPainterBoardBackground.height = imageHeight
         canvasContext.drawImage(img, 0, 0)
         currentlyEditedLayer = ''
-        resetLayerControls()
-        setLayerControls()
+        
+        renderLayerControls()
         setupCanvas()
         convertCanvasToGreyscale()
+        clearBrushColor()
+        Array.from(document.getElementsByClassName('disabled')).forEach(elem => elem.classList.remove('disabled'))
       }
 
       img.src = String(event.target?.result)

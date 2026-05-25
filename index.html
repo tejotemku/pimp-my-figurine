@@ -13,27 +13,27 @@
   </head>
   <body>
       <div id="board">
-          <canvas id="mini-canvas" style="z-index: 3;"></canvas>
-          <canvas id="mini-painter-board-background"></canvas>
-          <canvas id="mini-painter-board-background-greyscale" style="z-index: 2"></canvas>
-          <div id="brush"></div>
-          <span id="hide-ui-button" class="material-symbols-outlined hide-ui">text_ad_off</span>
-      </div>
-      <div id="sidebar" class="ui-controls">
-        <!-- upload image -->
+        <!-- canvases -->
+        <canvas id="mini-canvas" style="z-index: 3;"></canvas>
+        <canvas id="mini-painter-board-background"></canvas>
+        <canvas id="mini-painter-board-background-greyscale" style="z-index: 2"></canvas>
+
+        <!-- UI elements -->
+        <div id="brush"></div>
+        <span id="hide-ui-button" class="material-symbols-outlined hide-ui">text_ad_off</span>
+          <!-- upload image -->
         <input type="file" id="mini-image-upload" name="Image import." accept="image/*" />
-        <label for="mini-image-upload" class="button">
+        <label for="mini-image-upload" class="button upload-image-button">
           <span class="material-symbols-outlined">add_photo_alternate</span>
            Upload image
          </label>
-         
-        <hr />
-
+      </div>
+      <div id="sidebar" class="ui-controls">
         <!-- greyscale -->
         <input type="checkbox" id="greyscale" value="greyscale" />   
         <label for="greyscale" class="toggle-switch">
             <span class="toggle-switch-controler"></span>
-            <span class="label-text">Greyscale</span>
+            <span class="label-text">Greyscale photo</span>
         </label>
 
         <!-- overrite pixels -->
@@ -61,12 +61,12 @@
         
         <!-- colors & eraser -->
         <span class="color-controls">
-          <label id="layer-color-eraser" class="button">
+          <label id="layer-color-eraser" class="button disabled">
             <span class="material-symbols-outlined">ink_eraser</span>
             Eraser
           </label>
   
-          <label id="add-new-layer" class="button">
+          <label id="add-new-layer" class="button disabled">
             New paint
             <span class="material-symbols-outlined">add</span>
           </label>

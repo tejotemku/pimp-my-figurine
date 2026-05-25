@@ -1,7 +1,13 @@
 :root {
-  --color-buttons: antiquewhite;
-  --color-border: #ccc;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  --color-background: aliceblue;
+  --color-border: grey;
+  --color-text: rgb(20, 20, 20);
+  --color-accents: #13c187;
+
+  
+	font-weight: 500;
+  font-family: "Poppins", 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: var(--color-text);
 }
 
 #sidebar {
@@ -9,17 +15,19 @@
   height: 70%; 
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   position: absolute;
   right: 20px;
   top: 15%;
   z-index: 10;
   border-radius: 24px;
   box-shadow: 4px;
-  background-color: aquamarine;
+  background-color: var(--color-background);
   padding-inline: 20px;
   padding-block: 20px;
   cursor: auto;
+  border: 2px solid var(--color-border);
+  overflow-y: hidden;
 }
 
 #brush {
@@ -35,10 +43,10 @@
 
 #color-layers {
   flex-grow: 1;
+  overflow-y: auto;
 }
 
 #board {
-  background-color: blueviolet;
   width: 100%;
   height: 100%;
   overflow: auto;
@@ -76,17 +84,22 @@ input[type="file"] {
 }
 
 .button {
-  border: 1px solid var(--color-border);
-  display: inline-block;
+  background-color: var( --color-background);
+  border: 2px solid var(--color-border);
+  border-radius: 5px;
   padding: 6px 12px;
   cursor: pointer;
   border-radius: 10px;
   width: fit-content;
-  background-color: var( --color-buttons);
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
 }
 
 .active-layer {
-  border: 4px solid gold;
+  border: 4px solid var(--color-accents);
 }
 
 
@@ -107,4 +120,120 @@ canvas:not(#mini-painter-board-background) {
 
 .hide {
   visibility: hidden;
+}
+
+
+
+/* links */
+a {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text);
+  text-decoration: none;
+  position: relative;
+  width: fit-content;
+}
+
+a::before {
+  content: '';
+  background-color: var(--color-accents);
+  position: absolute;
+  left: 0;
+  bottom: 3px;
+  width: 100%;
+  height: 6px;
+  z-index: -1;
+  transition: all .3s ease-in-out;
+}
+
+a:hover::before {
+  bottom: 0;
+  height: 100%;
+}
+
+
+/* icons */
+.hide-ui {
+  background-color: var( --color-background);
+  border: 2px solid var(--color-border);
+  border-radius: 5px;
+  padding: 6px;
+  user-select: none;
+}
+
+/* Checkboxes  */
+input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  user-select: none;
+  padding-block: 4px;
+  padding-inline: 10px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.toggle-switch .toggle-switch-controler {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: #cbd5e0;
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  transition: visibility 0s;
+}
+
+.toggle-switch .toggle-switch-controler::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: visibility 0s;
+}
+
+input[type="checkbox"]:checked + .toggle-switch .toggle-switch-controler {
+  background: var(--color-accents);
+}
+
+input[type="checkbox"]:checked + .toggle-switch .toggle-switch-controler::after {
+  left: 26px;
+}
+
+/* Sliders */
+.slider-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+}
+ 
+input[type=range] { 
+  accent-color: var(--color-accents);
+}
+
+
+#color-opacity-slider-label {
+  width: 150px;
+}
+
+/* miscellaneous */
+
+.flex-row { 
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }

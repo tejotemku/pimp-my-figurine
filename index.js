@@ -1,5 +1,21 @@
 // CONSTANTS
-const DEFAULT_COLOR = '#29397B' // Ultramarine Blue ), cry me a river
+const PRESET_COLORS = [
+  '#29397B', // Ultramarine Blue ;), cry me a river
+  '#FFF700',
+  '#63B521',
+  '#FFF685',
+  '#005221',
+  '#630808',
+  '#00506F',
+  '#8BB9DD',
+  '#CCCC33',
+  '#CE8C42',
+  '#EB2E28',
+  '#DAA520',
+  '#A5D610',
+  '#8D736C',
+  '#EF9CB5'
+] 
 
 
 // types
@@ -236,9 +252,13 @@ function getBoard() {
   return document.getElementById('board')
 }
 
+function getNewPresetColor() {
+  return PRESET_COLORS[lastLayerId% PRESET_COLORS.length];
+}
+
 function createNewLayer() {
   lastLayerId++
-  layers.push( new ColorLayer(`layer-${lastLayerId}`, DEFAULT_COLOR, `Color ${lastLayerId}`, null))
+  layers.push( new ColorLayer(`layer-${lastLayerId}`, getNewPresetColor(), `Color ${lastLayerId}`, null))
   resetLayerControls()
   setLayerControls()
   setActiveColor(`layer-${lastLayerId}`)
@@ -301,7 +321,7 @@ function getBrushedArea() {
 }
 
 function getColorByLayerId(layerId) {
-  return layers.find(layer => layer.layerId === layerId)?.color ?? DEFAULT_COLOR
+  return layers.find(layer => layer.layerId === layerId)?.color ?? getNewPresetColor()
 }
 
 function getCurrentColor() {
@@ -386,7 +406,7 @@ function toggleUIVisibility() {
   Array.from(document.getElementsByClassName('ui-controls')).forEach(elem => {
     elem.classList.toggle('hide')
   })
-  hideUiButton.innerText = hideUI ? 'Show UI' : 'Hide UI'
+  hideUiButton.innerText = hideUI ? 'text_ad' : 'text_ad_off'
 }
 
 

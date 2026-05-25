@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Pimp my figurine</title>
     <link rel="stylesheet" href="./style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=check,close,edit" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add_photo_alternate,check,close,edit,palette,text_ad,text_ad_off" />
     <style>
      
     </style>
@@ -17,36 +17,57 @@
           <canvas id="mini-painter-board-background"></canvas>
           <canvas id="mini-painter-board-background-greyscale" style="z-index: 2"></canvas>
           <div id="brush"></div>
-          <div id="hide-ui-button" class="button">Hide UI</div>
+          <span id="hide-ui-button" class="material-symbols-outlined hide-ui">text_ad_off</span>
       </div>
       <div id="sidebar" class="ui-controls">
-        <span>
-          <input type="checkbox" id="greyscale" name="greyscale" style="width: fit-content;" value="greyscale" />   
-          <label for="greyscale"> Greyscale  </label>
-        </span>
-       <label for="mini-image-upload" class="button">
-          Upload image
-        </label>
+        <!-- upload image -->
         <input type="file" id="mini-image-upload" name="Image import." accept="image/*" />
-        <label for="brush-size-slider" id="brush-size-slider-label">
-          Brush size: 5
+        <label for="mini-image-upload" class="button">
+          <span class="material-symbols-outlined">add_photo_alternate</span>
+           Upload image
+         </label>
+
+        <!-- greyscale -->
+        <input type="checkbox" id="greyscale" value="greyscale" />   
+        <label for="greyscale" class="toggle-switch">
+            <span class="toggle-switch-controler"></span>
+            <span class="label-text">Greyscale</span>
         </label>
-        <input type="range" min="1" max="20" value="5" id="brush-size-slider">
-        <label for="color-opacity-slider" id="color-opacity-slider-label">
-          Color opacity : 50%
+
+        <!-- overrite pixels -->
+        <input type="checkbox" id="overwrite-pixels" value="overwrite-pixels" /> 
+        <label for="overwrite-pixels" class="toggle-switch">
+            <span class="toggle-switch-controler"></span>
+            <span class="label-text">Overwrite pixels</span>
         </label>
-        <input type="range" min="1" max="100" value="50" id="color-opacity-slider">
-        <span>
-          <input type="checkbox" id="overwrite-pixels" name="overwrite-pixels" style="width: fit-content;" value="overwrite-pixels" /> 
-          <label for="overwrite-pixels"> Overwrite pixels  </label>
+
+        <!-- brush size -->
+        <span class="slider-wrapper">
+          <input type="range" min="1" max="20" value="5" id="brush-size-slider">
+          <label for="brush-size-slider" id="brush-size-slider-label">
+            Brush size: 5
+          </label>
         </span>
-        <button id="layer-color-eraser" type="button" style="width: fit-content;">Eraser</button>
-        <button id="add-new-layer" type="button" style="width: fit-content;">New color</button>
+
+        <!-- opacity -->
+        <span class="slider-wrapper">
+          <input type="range" min="1" max="100" value="50" id="color-opacity-slider">
+          <label for="color-opacity-slider" id="color-opacity-slider-label">
+            Color opacity : 50%
+          </label>
+        </span>
+        
+        <span class="flex-row">
+          <button id="layer-color-eraser" type="button" style="width: fit-content;">Eraser</button>
+          <button id="add-new-layer" type="button" style="width: fit-content;">New paint</button>
+        </span>
 
         <div id="color-layers">
           <!-- here layers go -->
         </div>
-        <a href="https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart" target="_about"> 
+        <a href="https://www.dakkadakka.com/wiki/en/Paint_Range_Compatibility_Chart" target="_about">
+          
+          <span class="material-symbols-outlined">palette</span> 
           DakkaDakka paints chart
         </a>
       </div>

@@ -25,20 +25,43 @@ let isErasing = false
 let colorsOpacityInHex = '80'
 let colorsOpacityInHexOld = ''
 
+// global elements
+const brush = document.getElementById('brush')
+
+// helpers
 function debouncer(callback, delay) {
-  let timerId;
+  let timerId
 
   // Return a new function that wraps the callback
   return function (...args) {
     // 1. Clear any active timer currently running
-    clearTimeout(timerId);
+    clearTimeout(timerId)
 
     // 2. Set a new timer
     timerId = setTimeout(() => {
       // 3. Execute the callback with the correct 'this' context and arguments
-      callback.apply(this, args);
-    }, delay);
-  };
+      callback.apply(this, args)
+    }, delay)
+  }
+}
+
+// brush controls
+window.addEventListener("mousemove", (event) => {
+  brush.style.left = (event.clientX - brushSize)+ 'px'
+  brush.style.top = (event.clientY - brushSize) + 'px'
+})
+
+function changeBrushElementSize(size) {
+  brush.style.width = (2 * size - 1) + 'px'
+  brush.style.height = (2 * size - 1) + 'px'
+} 
+
+function setBrushColor() {
+  brush.style.backgroundColor = getCurrentColor()
+}
+
+function clearBrushColor() {
+  brush.style.backgroundColor = '#00000080'
 }
 
 function resetLayerControls() {
@@ -58,6 +81,7 @@ function setActiveColor (layerId) {
     layerInput.classList.remove('active-layer')
   })
   document.getElementById(`layer-color-${layerId}`).classList.add('active-layer')
+  setBrushColor()
 }
 
 function setLayerControls() {
@@ -110,18 +134,22 @@ function setLayerControls() {
       layerEditNameWrapper.style = "display: none;"
         // layer name
         const layerEditNameInput = document.createElement('input')
-        layerEditNameInput.setAttribute('id', `layer-name-input-${layer.layerId}`)
-        layerEditNameInput.setAttribute('type', 'text')
-        layerEditNameInput.setAttribute('value', layer.name)
 
-        // layer start edit icon
-        const layerStopEditIcon = createIcon('check', () => {
+        function saveLayerName() {
           layerWrapper.getElementsByClassName('layer-edit-name')[0].style = "display: none;"
           layerWrapper.getElementsByClassName('layer-display-name')[0].style = "display: flex;"
           changeLayerName(layer.layerId, layerEditNameInput.value)
           resetLayerControls()
           setLayerControls()
-        })
+        }
+
+        layerEditNameInput.setAttribute('id', `layer-name-input-${layer.layerId}`)
+        layerEditNameInput.setAttribute('type', 'text')
+        layerEditNameInput.setAttribute('value', layer.name)
+        layerEditNameInput.addEventListener('keypress',  (event) => (event.key === 'Enter') && saveLayerName())
+
+        // layer start edit icon
+        const layerStopEditIcon = createIcon('check', saveLayerName)
         layerEditNameWrapper.appendChild(layerEditNameInput)
         layerEditNameWrapper.appendChild(layerStopEditIcon)
 
@@ -150,6 +178,7 @@ function changeLayerColorFunc(layerId, color) {
   if (!layer) return
   changeCanvasColor(layer.color, color)
   layer.color = color
+  setBrushColor()
 }
 
 function changeLayerName(layerId, name) {
@@ -169,6 +198,7 @@ function removeLayerById(layerId) {
 function setBrushSize(size) {
   brushSize = size
   document.getElementById('brush-size-slider-label').innerText = `Brush size: ${size}`
+  changeBrushElementSize(size)
 }
 
 function repaintCanvas() {
@@ -180,9 +210,10 @@ function setColorOpacityFunc(opacity) {
   let opacity256 = Number(opacity) * 255 / 100
   opacity256 = opacity256 | 0
   colorsOpacityInHexOld = colorsOpacityInHex
-  colorsOpacityInHex = opacity256.toString(16).toUpperCase();
+  colorsOpacityInHex = opacity256.toString(16).toUpperCase()
   if (colorsOpacityInHex.length === 1) colorsOpacityInHex = '0' + colorsOpacityInHex
   repaintCanvas()
+  setBrushColor()
 }
 
 const setColorOpacity = debouncer(setColorOpacityFunc, 250)
@@ -203,6 +234,7 @@ document.getElementById('overwrite-pixels').addEventListener('change', () => ove
 
 document.getElementById('layer-color-eraser').addEventListener('click', () => {
   setActiveColor('eraser')
+  clearBrushColor()
   isErasing = true
 })
 document.getElementById('brush-size-slider').addEventListener('input', e => setBrushSize(e.target.value))
@@ -303,22 +335,27 @@ function changeCanvasColor(oldColor, newColor, opacityChange) {
 const changeLayerColor = debouncer(changeLayerColorFunc, 250)
 
 function getBrushedArea() {
-  const coordinates = [];
-  if (brushSize < 0) return coordinates;
-  const rSquared = brushSize * brushSize;
+  const coordinates = []
+  if (brushSize < 0) return coordinates
+  const rSquared = brushSize * brushSize
+
 
   for (let x = -brushSize; x <= brushSize; x++) {
     for (let y = -brushSize; y <= brushSize; y++) {
       if (x * x + y * y <= rSquared) {
-        coordinates.push({ x, y });
+        coordinates.push({ x, y })
       }
     }
   }
-  return coordinates;
+  return coordinates
 }
 
 function getColorByLayerId(layerId) {
   return layers.find(layer => layer.layerId === layerId)?.color ?? DEFAULT_COLOR
+}
+
+function getCurrentColor() {
+  return getColorByLayerId(currentlyEditedLayer) + colorsOpacityInHex
 }
 
 function setupCanvas() {
@@ -336,11 +373,12 @@ function setupCanvas() {
     const baseX = Math.floor(event.clientX - rect.left)
     const baseY = Math.floor(event.clientY - rect.top)
 
-    const color = getColorByLayerId(currentlyEditedLayer) + colorsOpacityInHex
+    const color = getCurrentColor()
     canvasContext.fillStyle = color
 
     
-    getBrushedArea().forEach(coord => {
+    const area = getBrushedArea()
+    area.forEach(coord => {
       const x = coord.x + baseX
       const y = coord.y + baseY
 

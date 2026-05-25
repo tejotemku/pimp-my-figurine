@@ -13,8 +13,10 @@
   </head>
   <body>
       <div id="board">
-          <canvas id="mini-painter-board-background" />
-          <canvas id="mini-canvas" class="color-layer-canvas" width="960" height="1280" />
+          <canvas id="mini-painter-board-background">
+            <canvas id="mini-canvas" class="color-layer-canvas" width="960" height="1280"></canvas>
+          </canvas>
+          <div id="brush"></div>
       </div>
       <div id="sidebar">
         <label for="mini-image-upload" class="button">
@@ -24,7 +26,7 @@
         <label for="brush-size-slider" id="brush-size-slider-label">
           Brush size: 5
         </label>
-        <input type="range" min="1" max="40" value="5" id="brush-size-slider">
+        <input type="range" min="1" max="20" value="5" id="brush-size-slider">
         <label for="color-opacity-slider" id="color-opacity-slider-label">
           Color opacity : 50%
         </label>

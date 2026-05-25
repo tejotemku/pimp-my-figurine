@@ -19,6 +19,18 @@
   background-color: aquamarine;
   padding-inline: 20px;
   padding-block: 20px;
+  cursor: auto;
+}
+
+#brush {
+  position: absolute;
+  z-index: 5;
+  border-radius: 100%;
+  border: 1px solid grey;
+  width: 9px;
+  height: 9px;
+  background-color: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 
 #color-layers {
@@ -30,6 +42,10 @@
   width: 100%;
   height: 100%;
   overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: none;
 }
 
 .layer {
@@ -73,12 +89,14 @@ input[type="file"] {
   border: 4px solid gold;
 }
 
+#mini-painter-board-background {
+  margin: auto;
+}
 
 canvas:not(#mini-painter-board-background) {
   z-index: 2;
   position: absolute;
-  top: 0;
-  left: 0;
+  margin: auto;
 }
 
-.layer-color-input {}
+/* .layer-color-input {} */

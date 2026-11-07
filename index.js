@@ -20,14 +20,14 @@ const PRESET_COLORS = [
 
 // types
 class ColorLayer {
-  constructor(layerId, color, name, canvas) {
+  constructor(layerId, color, name) {
     this.layerId = layerId
     this.color = color
     this.name= name
-    this.canvas = canvas
     this.oldColors = [color]
   }
 }
+
 
 // global variables
 let imageWidth = 0
@@ -49,6 +49,7 @@ let activeLandscape = undefined
 const brush = document.getElementById('brush')
 const hideUiButton = document.getElementById('hide-ui-button')
 const downloadCanvasButton = document.getElementById('download-canvas')
+const downloadPaintSchemeButton = document.getElementById('download-paint-scheme')
 const greyscaleCheckbox = document.getElementById('greyscale')
 const paintOverCheckbox = document.getElementById('paint-over')
 const eraser = document.getElementById('layer-color-eraser')
@@ -302,12 +303,17 @@ function repaintCanvas() {
 }
 
 
-function setColorOpacityFunc(opacity) {
+function setColorOpacityFunc(opacity, colorInHex) {
   let opacity256 = Number(opacity) * 255 / 100
   opacity256 = opacity256 | 0
   colorsOpacityInHexOld = colorsOpacityInHex
-  colorsOpacityInHex = opacity256.toString(16).toUpperCase()
+  colorsOpacityInHex = colorInHex ? opacity : opacity256.toString(16).toUpperCase()
   if (colorsOpacityInHex.length === 1) colorsOpacityInHex = '0' + colorsOpacityInHex
+  if (colorInHex) { 
+    const opacityDec = parseInt('0x' + opacity, 16)
+    colorOpacitySlider.value = opacityDec
+    colorOpacitySliderLabel.innerText = `Color opacity : ${opacityDec}%`
+  }
   repaintCanvas()
   setBrushColor()
 }
@@ -416,6 +422,7 @@ function setupCanvas() {
     paintingCanvasContext.fillStyle = color
 
     
+    // TODO: change this so that it is calculated only at the beggning and after brush size change
     const area = getBrushedArea()
     area.forEach(coord => {
       const x = coord.x + baseX
@@ -490,11 +497,23 @@ function downloadCanvas() {
   aDownloadLink.remove();
 }
 
+function downloadPaintScheme() {
+  const configStringified = JSON.stringify({layers, colorsOpacityInHex}, null, 2)
+  const aDownloadLink = document.createElement('a');
+  aDownloadLink.download = 'pimp-my-figurine_paint-scheme.json';
+  aDownloadLink.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(configStringified);
+  aDownloadLink.click();
+  aDownloadLink.remove();
+}
+
 
 // watchers
 hideUiButton.addEventListener('click', toggleUIVisibility)
 downloadCanvasButton.addEventListener('click', downloadCanvas)
+downloadPaintSchemeButton.addEventListener('click', downloadPaintScheme)
 
+
+// TODO: move all lambdas to functions, remove inlining
 greyscaleCheckbox.addEventListener('change', () => {
   greyscale = !greyscale
   canvasGreyscale.style.visibility = greyscale ? 'visible' : 'hidden'
@@ -518,11 +537,51 @@ document.addEventListener("DOMContentLoaded", () => {
   const miniImageImportFile = document.getElementById("mini-image-upload")
   const miniPainterBoardBackground = document.getElementById("mini-painter-board-background")
   const canvasImportFile = document.getElementById("canvas-upload")
-  if (!miniImageImportFile || !miniPainterBoardBackground || !canvasImportFile) return
+  const paintSchemeImportFile = document.getElementById("paint-scheme-upload")
+
+  if (!miniImageImportFile || !miniPainterBoardBackground || !canvasImportFile || !paintSchemeImportFile) return
 
   const canvasContext = miniPainterBoardBackground.getContext("2d", { willreadfrequently: true })
   if (!canvasContext) return
 
+  // TODO: parts of these lambdas are similar, DRY
+  paintSchemeImportFile.addEventListener("change", (event) => {
+    if (!event.target) return
+    const file = event.target.files[0]
+    if (!file) return
+
+    if (!confirm('Are you sure you want to replace current paint scheme? Current scheme will be lost.')) return
+
+    const reader = new FileReader()
+
+    reader.onload = (event) => {
+      const oldOpacity = colorsOpacityInHex
+      const oldLayers = layers
+      const oldLastLayerId = lastLayerId
+      try {
+        const paintScheme = JSON.parse(String(event.target?.result))
+        setColorOpacity(paintScheme.colorsOpacityInHex, true)
+        layers = paintScheme.layers
+        const layerIds = layers.map(layer => Number(layer.layerId.replace("layer-", "")))
+        renderLayerControls()
+        if (layerIds.length === 0) {
+          lastLayerId = -1
+          setActiveColor()
+        } else {
+          lastLayerId = Math.max(...layerIds)
+          setActiveColor("layer-" + Math.min(...layerIds))
+        }
+      } catch (e) {
+        alert(`ERROR: While parsing paint scheme file error occured\n\n${e}\n\nReturning to previous state.`)
+        layers = oldLayers
+        lastLayerId = oldLastLayerId
+        renderLayerControls()
+        setColorOpacity(oldOpacity, true)
+      }
+    }
+    reader.readAsText(file)
+
+  })
 
   canvasImportFile.addEventListener("change", (event) => {
     if (!event.target) return

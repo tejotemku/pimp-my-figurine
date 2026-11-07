@@ -1,0 +1,32 @@
+{
+  "layers": [
+    {
+      "layerId": "layer-0",
+      "color": "#29397B",
+      "name": "Paint 0",
+      "oldColors": [
+        "#000000",
+        "#29397B"
+      ]
+    },
+    {
+      "layerId": "layer-1",
+      "color": "#b7b576",
+      "name": "Paint 1",
+      "oldColors": [
+        "#b7b576",
+        "#FFF700"
+      ]
+    },
+    {
+      "layerId": "layer-2",
+      "color": "#7298ca",
+      "name": "Paint 2",
+      "oldColors": [
+        "#7298ca",
+        "#63B521"
+      ]
+    }
+  ],
+  "colorsOpacityInHex": "80"
+}

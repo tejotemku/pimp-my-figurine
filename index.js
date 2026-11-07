@@ -310,7 +310,7 @@ function setColorOpacityFunc(opacity, colorInHex) {
   colorsOpacityInHex = colorInHex ? opacity : opacity256.toString(16).toUpperCase()
   if (colorsOpacityInHex.length === 1) colorsOpacityInHex = '0' + colorsOpacityInHex
   if (colorInHex) { 
-    const opacityDec = parseInt('0x' + opacity, 16)
+    const opacityDec = (parseInt('0x' + opacity, 16) * 100 / 255) | 0
     colorOpacitySlider.value = opacityDec
     colorOpacitySliderLabel.innerText = `Color opacity : ${opacityDec}%`
   }

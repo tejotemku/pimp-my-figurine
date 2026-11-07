@@ -30,6 +30,10 @@
   flex-direction: column;
 }
 
+#modal { 
+  z-index: 1000;
+}
+
 .sidebar-tab {
   display: flex;
   flex-direction: column;
@@ -228,11 +232,30 @@ canvas:not(#mini-painter-board-background) {
   visibility: hidden;
 }
 
-.upload-image-button {
+.floating-button {
   position: absolute;
   z-index: 8;
-  top: 80px;
   left: 20px;
+}
+
+.upload-image-button {
+  top: 80px;
+}
+
+.download-canvas-button {
+  top: 132px;
+}
+
+.upload-canvas-button {
+  top: 184px;
+}
+
+.download-paint-scheme-button {
+  top: 236px;
+}
+
+.upload-paint-scheme-button {
+  top: 288px;
 }
 
 /* links */

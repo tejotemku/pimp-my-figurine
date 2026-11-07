@@ -7,7 +7,7 @@
     <title>Pimp my figurine</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="icon" type="image/x-icon" href="./public/PimpMyFigurineLogoMini.png">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,add_photo_alternate,check,close,edit,ink_eraser,palette,text_ad,text_ad_off" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,add_photo_alternate,arrow_circle_down,arrow_circle_up,check,close,edit,ink_eraser,ios_share,palette,system_update_alt,text_ad,text_ad_off" />
   </head>
   <body>
       <div id="board">
@@ -21,12 +21,39 @@
         <div id="brush"></div>
         <span id="hide-ui-button" class="material-symbols-outlined hide-ui disabled">text_ad_off</span>
 
-          <!-- upload image -->
+        <!-- upload image -->
         <input type="file" id="mini-image-upload" name="Image import." accept="image/*" />
-        <label for="mini-image-upload" class="button upload-image-button ui-controls">
+        <label for="mini-image-upload" class="button upload-image-button floating-button ui-controls">
           <span class="material-symbols-outlined">add_photo_alternate</span>
-           Upload image
-         </label>
+          Upload image
+        </label>
+
+        <!-- download canvas -->
+        <label class="button floating-button download-canvas-button ui-controls disabled" id="download-canvas">
+          <span class="material-symbols-outlined">system_update_alt</span>
+          Download canvas
+        </label>
+
+        <!-- upload canvas -->
+        <input type="file" id="canvas-upload" name="Canvas import." accept="image/*" class="disabled"/>
+        <label for="canvas-upload" class="button upload-canvas-button floating-button ui-controls  disabled">
+          <span class="material-symbols-outlined">ios_share</span>
+          Upload canvas
+        </label>
+
+        <!-- download paint scheme -->
+        <label class="button floating-button download-paint-scheme-button ui-controls disabled" id="download-paint-scheme">
+          <span class="material-symbols-outlined">arrow_circle_down</span>
+          Download paint scheme
+        </label>
+
+        <!-- upload paint scheme -->
+        <input type="file" id="paint-scheme-upload" name="Canvas import." accept="image/*" class="disabled"/>
+        <label for="canvas-upload" class="button upload-paint-scheme-button floating-button ui-controls  disabled">
+          <span class="material-symbols-outlined">arrow_circle_up</span>
+          Upload paint-scheme
+        </label>
+
         <!-- logo -->
          <img src="./public/PimpMyFigurineLogo.png" class="logo ui-controls"></img>
       </div>
@@ -98,6 +125,9 @@
         <div class="sidebar-tab" id="landscape-tab">
           Nothing yet...
         </div>
+      </div>
+      <div id="modal">
+        
       </div>
     <script src="./index.js"></script>
   </body>

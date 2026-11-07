@@ -48,6 +48,7 @@ let activeLandscape = undefined
 // global control elements
 const brush = document.getElementById('brush')
 const hideUiButton = document.getElementById('hide-ui-button')
+const downloadCanvasButton = document.getElementById('download-canvas')
 const greyscaleCheckbox = document.getElementById('greyscale')
 const paintOverCheckbox = document.getElementById('paint-over')
 const eraser = document.getElementById('layer-color-eraser')
@@ -428,9 +429,7 @@ function setupCanvas() {
         }
       }
     })
-    
   }
-
 
   paintingCanvas.addEventListener('mousedown', (event) => {
     if (!currentlyEditedLayer) return
@@ -482,9 +481,19 @@ function toggleUIVisibility() {
   hideUiButton.innerText = hideUI ? 'text_ad' : 'text_ad_off'
 }
 
+function downloadCanvas() {
+  const image = paintingCanvas.toDataURL();
+  const aDownloadLink = document.createElement('a');
+  aDownloadLink.download = 'pimp_my_figurine.png';
+  aDownloadLink.href = image;
+  aDownloadLink.click();
+  aDownloadLink.remove();
+}
+
 
 // watchers
 hideUiButton.addEventListener('click', toggleUIVisibility)
+downloadCanvasButton.addEventListener('click', downloadCanvas)
 
 greyscaleCheckbox.addEventListener('change', () => {
   greyscale = !greyscale
@@ -508,11 +517,42 @@ addNewLayerButton.addEventListener('click', createNewLayer)
 document.addEventListener("DOMContentLoaded", () => {
   const miniImageImportFile = document.getElementById("mini-image-upload")
   const miniPainterBoardBackground = document.getElementById("mini-painter-board-background")
-  if (!miniImageImportFile || !miniPainterBoardBackground) return
+  const canvasImportFile = document.getElementById("canvas-upload")
+  if (!miniImageImportFile || !miniPainterBoardBackground || !canvasImportFile) return
 
   const canvasContext = miniPainterBoardBackground.getContext("2d", { willreadfrequently: true })
   if (!canvasContext) return
 
+
+  canvasImportFile.addEventListener("change", (event) => {
+    if (!event.target) return
+    const file = event.target.files[0]
+    if (!file) return
+
+    if (!confirm('Are you sure you want to replace current canvas? Current works will be lost.')) return
+
+    const reader = new FileReader()
+
+    reader.onload = (event) => {
+      const img = new Image()
+      
+      img.onload = () => {
+        if (miniPainterBoardBackground.width !== img.width || 
+        miniPainterBoardBackground.height !== img.height) {
+          alert(`Dimensions are not correct.\nImage width: ${miniPainterBoardBackground.width}, uploaded canvas width: ${img.width}.\nImage height: ${miniPainterBoardBackground.height}, uploaded canvas height: ${img.height}.\nAborting.` )
+          return
+        }
+
+        renderLayerControls()
+        setupCanvas()
+        paintingCanvasContext.drawImage(img, 0, 0)
+        currentlyEditedLayer = ''
+      }
+    
+      img.src = String(event.target?.result)
+    }
+    reader.readAsDataURL(file)
+  })
 
   miniImageImportFile.addEventListener("change", (event) => {
     if (!event.target) return
